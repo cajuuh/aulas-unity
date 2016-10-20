@@ -26,6 +26,21 @@ namespace UnityStandardAssets._2D
             }
         }
 
+        void OnTriggerStay2D(Collider2D col)
+        {
+            if (col.gameObject.tag == "Platform")
+            {
+                transform.parent = col.transform;
+            }
+        }
+
+        void OnTriggerExit2D(Collider2D col)
+        {
+            if (col.gameObject.tag == "Platform")
+            {
+                transform.parent = null;
+            }
+        }
 
         private void FixedUpdate()
         {

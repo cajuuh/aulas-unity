@@ -64,7 +64,23 @@ namespace UnityStandardAssets._2D
             // Set the vertical animation
             m_Anim.SetFloat("vSpeed", m_Rigidbody2D.velocity.y);
         }
-        
+
+        void OnCollisionEnter2D(Collision2D col)
+        {
+            if (col.gameObject.tag == "Platform")
+            {
+                transform.parent = col.transform;
+            }
+        }
+
+        void OnCollisionExit2D(Collision2D col)
+        {
+            if (col.gameObject.tag == "Platform")
+            {
+                transform.parent = null;
+            }
+        }
+
         public void Move(float move, bool crouch, bool jump, bool roll)
         {
             float originalMove = move;
@@ -138,6 +154,7 @@ namespace UnityStandardAssets._2D
                 doubleJump = false;
             }
         }
+
         
         private void Flip()
         {
@@ -178,5 +195,6 @@ namespace UnityStandardAssets._2D
 
             m_transform.position = newPosition;
         }
+
     }
 }
