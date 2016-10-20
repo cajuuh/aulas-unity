@@ -31,10 +31,13 @@ namespace UnityStandardAssets._2D
         {
             // Read the inputs.
             bool crouch = Input.GetKey(KeyCode.LeftControl);
+            bool roll = Input.GetKey(KeyCode.Q);
             float h = Input.GetAxis("Horizontal");
             // Pass all parameters to the character control script.
-            m_Character.Move(h, crouch, m_Jump);
+            m_Character.Move(h, crouch, m_Jump, roll);
             m_Jump = false;
+
+            m_Character.Wrap();
         }
     }
 }

@@ -10,6 +10,7 @@ namespace UnityStandardAssets._2D
         [Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;  // Amount of maxSpeed applied to crouching movement. 1 = 100%
         [SerializeField] private bool m_AirControl = false;                 // Whether or not a player can steer while jumping;
         [SerializeField] private LayerMask m_WhatIsGround;                  // A mask determining what is ground to the character
+        [SerializeField] private float m_RollSpeed = 1.36f;
 
         private Transform m_GroundCheck;    // A position marking where to check if the player is grounded.
         const float k_GroundedRadius = .2f; // Radius of the overlap circle to determine if grounded
@@ -19,17 +20,33 @@ namespace UnityStandardAssets._2D
         private Animator m_Anim;            // Reference to the player's animator component.
         private Rigidbody2D m_Rigidbody2D;
         private bool m_FacingRight = true;  // For determining which way the player is currently facing.
+        private bool doubleJump = false;
+        private bool isWrappingWidth = false;
+        private bool wrapWidth = true;
+
+        private Camera m_camera;
+        private Renderer m_renderer;
+        private Transform m_transform;
+        private Vector2 viewportPosition;
+        private Vector2 newPosition;
 
         private void Awake()
         {
             // Setting up references.
             m_GroundCheck = transform.Find("GroundCheck");
             m_CeilingCheck = transform.Find("CeilingCheck");
-            m_Anim = GetComponent<Animator>();
+
             m_Rigidbody2D = GetComponent<Rigidbody2D>();
+            m_transform = GetComponent<Transform>();
+            m_renderer = GetComponent<Renderer>();
+            m_Anim = GetComponent<Animator>();
+
+            viewportPosition = m_transform.position;
+            newPosition = Vector2.zero;
+
+            m_camera = Camera.main;
         }
-
-
+        
         private void FixedUpdate()
         {
             m_Grounded = false;
@@ -47,10 +64,11 @@ namespace UnityStandardAssets._2D
             // Set the vertical animation
             m_Anim.SetFloat("vSpeed", m_Rigidbody2D.velocity.y);
         }
-
-
-        public void Move(float move, bool crouch, bool jump)
+        
+        public void Move(float move, bool crouch, bool jump, bool roll)
         {
+            float originalMove = move;
+
             // If crouching, check to see if the character can stand up
             if (!crouch && m_Anim.GetBool("Crouch"))
             {
@@ -61,14 +79,23 @@ namespace UnityStandardAssets._2D
                 }
             }
 
+            m_Anim.SetBool("Roll", roll);
+
             // Set whether or not the character is crouching in the animator
             m_Anim.SetBool("Crouch", crouch);
 
             //only control the player if grounded or airControl is turned on
             if (m_Grounded || m_AirControl)
             {
-                // Reduce the speed if crouching by the crouchSpeed multiplier
-                move = (crouch ? move*m_CrouchSpeed : move);
+                // Reduce the speed if crouching by the crouchSpeed multiplier or speed up if rolling
+                if (crouch && roll || crouch && !roll)
+                {
+                    move *= m_CrouchSpeed;
+                }
+                else if (!crouch && roll)
+                {
+                    move *= m_RollSpeed;
+                }
 
                 // The Speed animator parameter is set to the absolute value of the horizontal input.
                 m_Anim.SetFloat("Speed", Mathf.Abs(move));
@@ -96,10 +123,22 @@ namespace UnityStandardAssets._2D
                 m_Grounded = false;
                 m_Anim.SetBool("Ground", false);
                 m_Rigidbody2D.AddForce(new Vector2(0f, m_JumpForce));
+
+                doubleJump = true;
+            }
+
+            else if (jump && doubleJump)
+            {
+                if (m_Rigidbody2D.velocity.y < 0)
+                    m_Rigidbody2D.velocity = new Vector2(m_Rigidbody2D.velocity.x, 0); 
+
+                m_Anim.SetBool("Ground", false);
+                m_Rigidbody2D.AddForce(new Vector2(0f, m_JumpForce));
+
+                doubleJump = false;
             }
         }
-
-
+        
         private void Flip()
         {
             // Switch the way the player is labelled as facing.
@@ -109,6 +148,35 @@ namespace UnityStandardAssets._2D
             Vector3 theScale = transform.localScale;
             theScale.x *= -1;
             transform.localScale = theScale;
+        }
+
+        public void Wrap()
+        {
+            if (m_renderer.isVisible) isWrappingWidth = false;
+
+            newPosition = m_transform.position;
+            viewportPosition = m_camera.WorldToViewportPoint(newPosition);
+
+            if (wrapWidth)
+            {
+                if (!isWrappingWidth)
+                {
+                    if (viewportPosition.x > 1)
+                    {
+                        newPosition.x = m_camera.ViewportToWorldPoint(Vector2.zero).x;
+                        isWrappingWidth = true;
+
+                    }
+                    else if (viewportPosition.x < 0)
+                    {
+                        newPosition.x = m_camera.ViewportToWorldPoint(Vector2.one).x;
+                        isWrappingWidth = true;
+
+                    }
+                }
+            }
+
+            m_transform.position = newPosition;
         }
     }
 }
