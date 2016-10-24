@@ -5,6 +5,7 @@ namespace UnityStandardAssets._2D
 {
     public class PlatformerCharacter2D : MonoBehaviour
     {
+
         [SerializeField] private float m_MaxSpeed = 10f;                    // The fastest the player can travel in the x axis.
         [SerializeField] private float m_JumpForce = 400f;                  // Amount of force added when the player jumps.
         [Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;  // Amount of maxSpeed applied to crouching movement. 1 = 100%
@@ -23,6 +24,7 @@ namespace UnityStandardAssets._2D
         private bool doubleJump = false;
         private bool isWrappingWidth = false;
         private bool wrapWidth = true;
+        private const string Death_Tag = "Death";
 
         private Camera m_camera;
         private Renderer m_renderer;
@@ -67,6 +69,14 @@ namespace UnityStandardAssets._2D
 
         void OnCollisionEnter2D(Collision2D col)
         {
+
+            if (col.gameObject.tag == Death_Tag)
+            {
+                this.gameObject.GetComponent<Platformer2DUserControl>().enabled = false;
+                m_Anim.SetBool("Death", true);
+
+
+            }
             if (col.gameObject.tag == "Platform")
             {
                 transform.parent = col.transform;
