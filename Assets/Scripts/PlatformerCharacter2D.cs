@@ -22,15 +22,7 @@ namespace UnityStandardAssets._2D
         private Rigidbody2D m_Rigidbody2D;
         private bool m_FacingRight = true;  // For determining which way the player is currently facing.
         private bool doubleJump = false;
-        private bool isWrappingWidth = false;
-        private bool wrapWidth = true;
         private const string Death_Tag = "Death";
-
-        private Camera m_camera;
-        private Renderer m_renderer;
-        private Transform m_transform;
-        private Vector2 viewportPosition;
-        private Vector2 newPosition;
 
         private void Awake()
         {
@@ -39,14 +31,7 @@ namespace UnityStandardAssets._2D
             m_CeilingCheck = transform.Find("CeilingCheck");
 
             m_Rigidbody2D = GetComponent<Rigidbody2D>();
-            m_transform = GetComponent<Transform>();
-            m_renderer = GetComponent<Renderer>();
             m_Anim = GetComponent<Animator>();
-
-            viewportPosition = m_transform.position;
-            newPosition = Vector2.zero;
-
-            m_camera = Camera.main;
         }
         
         private void FixedUpdate()
@@ -74,8 +59,7 @@ namespace UnityStandardAssets._2D
             {
                 this.gameObject.GetComponent<Platformer2DUserControl>().enabled = false;
                 m_Anim.SetBool("Death", true);
-
-
+                
             }
             if (col.gameObject.tag == "Platform")
             {
@@ -164,7 +148,6 @@ namespace UnityStandardAssets._2D
                 doubleJump = false;
             }
         }
-
         
         private void Flip()
         {
@@ -175,35 +158,6 @@ namespace UnityStandardAssets._2D
             Vector3 theScale = transform.localScale;
             theScale.x *= -1;
             transform.localScale = theScale;
-        }
-
-        public void Wrap()
-        {
-            if (m_renderer.isVisible) isWrappingWidth = false;
-
-            newPosition = m_transform.position;
-            viewportPosition = m_camera.WorldToViewportPoint(newPosition);
-
-            if (wrapWidth)
-            {
-                if (!isWrappingWidth)
-                {
-                    if (viewportPosition.x > 1)
-                    {
-                        newPosition.x = m_camera.ViewportToWorldPoint(Vector2.zero).x;
-                        isWrappingWidth = true;
-
-                    }
-                    else if (viewportPosition.x < 0)
-                    {
-                        newPosition.x = m_camera.ViewportToWorldPoint(Vector2.one).x;
-                        isWrappingWidth = true;
-
-                    }
-                }
-            }
-
-            m_transform.position = newPosition;
         }
 
     }

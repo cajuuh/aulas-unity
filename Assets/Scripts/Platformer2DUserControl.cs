@@ -51,8 +51,6 @@ namespace UnityStandardAssets._2D
             // Pass all parameters to the character control script.
             m_Character.Move(h, crouch, m_Jump, roll);
             m_Jump = false;
-
-            m_Character.Wrap();
         }
     }
 }
