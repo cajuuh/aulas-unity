@@ -15,14 +15,25 @@ namespace UnityStandardAssets._2D
 
         private Transform m_GroundCheck;    // A position marking where to check if the player is grounded.
         const float k_GroundedRadius = .2f; // Radius of the overlap circle to determine if grounded
-        private bool m_Grounded;            // Whether or not the player is grounded.
+        public bool m_Grounded;            // Whether or not the player is grounded.
         private Transform m_CeilingCheck;   // A position marking where to check for ceilings
         const float k_CeilingRadius = .01f; // Radius of the overlap circle to determine if the player can stand up
         private Animator m_Anim;            // Reference to the player's animator component.
         private Rigidbody2D m_Rigidbody2D;
         private bool m_FacingRight = true;  // For determining which way the player is currently facing.
         private bool doubleJump = false;
-        private const string Death_Tag = "Death";
+
+        private bool isDead; //For determining the end of the game.
+
+        private Animator anim;
+        private bool deathAnimState;
+
+
+        #region READONLY
+
+        private readonly string Death_Tag = "Death";
+
+        #endregion
 
         private void Awake()
         {
@@ -32,6 +43,17 @@ namespace UnityStandardAssets._2D
 
             m_Rigidbody2D = GetComponent<Rigidbody2D>();
             m_Anim = GetComponent<Animator>();
+        }
+
+        private void Start()
+        {
+            anim = GetComponent<Animator>();
+            isDead = false;
+        }
+
+        void Update()
+        {
+           deathAnimState = anim.GetCurrentAnimatorStateInfo(0).IsName("robotDie");
         }
         
         private void FixedUpdate()
@@ -55,15 +77,16 @@ namespace UnityStandardAssets._2D
         void OnCollisionEnter2D(Collision2D col)
         {
 
+            if (col.gameObject.tag == "Platform")
+            {
+                transform.parent = col.transform;
+            }
+
             if (col.gameObject.tag == Death_Tag)
             {
                 this.gameObject.GetComponent<Platformer2DUserControl>().enabled = false;
                 m_Anim.SetBool("Death", true);
-                
-            }
-            if (col.gameObject.tag == "Platform")
-            {
-                transform.parent = col.transform;
+                isDead = true;
             }
         }
 
@@ -72,6 +95,16 @@ namespace UnityStandardAssets._2D
             if (col.gameObject.tag == "Platform")
             {
                 transform.parent = null;
+            }
+        }
+
+        void OnTriggerEnter2D(Collider2D col)
+        {
+            if (col.gameObject.tag == Death_Tag)
+            {
+                this.gameObject.GetComponent<Platformer2DUserControl>().enabled = false;
+                m_Anim.SetBool("Death", true);
+                isDead = true;
             }
         }
 
@@ -160,5 +193,14 @@ namespace UnityStandardAssets._2D
             transform.localScale = theScale;
         }
 
+        public bool GetIsDead()
+        {
+            return isDead;
+        }
+
+        public bool GetAnimState()
+        {
+            return deathAnimState;
+        }
     }
 }

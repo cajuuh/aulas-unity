@@ -1,4 +1,5 @@
 using System;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -9,6 +10,7 @@ namespace UnityStandardAssets._2D
     {
         private PlatformerCharacter2D m_Character;
         private bool m_Jump;
+        private bool m_OnPlatform;
 
 
         private void Awake()
@@ -51,6 +53,28 @@ namespace UnityStandardAssets._2D
             // Pass all parameters to the character control script.
             m_Character.Move(h, crouch, m_Jump, roll);
             m_Jump = false;
+
+            if (m_OnPlatform && Input.GetButton("Vertical") && Input.GetAxisRaw("Vertical") < 0)
+            {
+                
+            }
+        }
+
+        private void OnPlatform()
+        {
+            
+        }
+
+        void OnCollisionStay2D(Collision2D col)
+        {
+            if (col.gameObject.tag == "Platform")
+            {
+                m_OnPlatform = true;
+            }
+            else
+            {
+                m_OnPlatform = false;
+            }
         }
     }
 }
